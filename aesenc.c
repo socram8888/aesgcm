@@ -80,10 +80,7 @@ int main(int argc, char ** argv) {
 			return 1;
 		}
 
-		// Zeroize tail bytes
-		memset(cipher + readbytes, 0, CHUNKSIZE - readbytes);
-
-		if (fwrite(cipher, CHUNKSIZE, 1, stdout) == 0) {
+		if (fwrite(cipher, readbytes, 1, stdout) == 0) {
 			perror("Failed to write ciphertext");
 			mbedtls_gcm_free(&aesgcm);
 			return 1;
@@ -98,7 +95,6 @@ int main(int argc, char ** argv) {
 		return 1;
 	}
 
-	tag[CHUNKSIZE - 1] = (tag[CHUNKSIZE - 1] & 0xF0) | readbytes;
 	if (fwrite(tag, sizeof(tag), 1, stdout) == 0) {
 		perror("Failed to write tail chunk");
 	}
