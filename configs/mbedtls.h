@@ -7,12 +7,10 @@
 #define MBEDTLS_CONFIG_H
 
 // We'll be using AES-GCM, with AES-NI if possible.
+#define MBEDTLS_CIPHER_C
 #define MBEDTLS_AES_C
 #define MBEDTLS_AESNI_C
 #define MBEDTLS_GCM_C
-
-// Padding for AES.
-#define MBEDTLS_CIPHER_PADDING_PKCS7
 
 // Entropy for random IV creation.
 #define MBEDTLS_ENTROPY_C

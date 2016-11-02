@@ -3,30 +3,20 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "pass.h"
+#include "common.h"
 
-#include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <mbedtls/entropy.h>
-#include <mbedtls/error.h>
-#include <mbedtls/md.h>
-#include <mbedtls/pkcs5.h>
 
-void mbedtls_perror(const char * message, int ret) {
-	char errortxt[256];
-	mbedtls_strerror(ret, errortxt, sizeof(errortxt));
-	fprintf(stderr, "%s: %s\n", message, errortxt);
-}
-
-int main() {
+int generate_random_salt(uint8_t * salt) {
 	int ret;
 
     mbedtls_entropy_context entropyctx;
-	uint8_t randomsalt[32];
 	mbedtls_entropy_init(&entropyctx);
 
-	ret = mbedtls_entropy_func(&entropyctx, randomsalt, sizeof(randomsalt));
+	ret = mbedtls_entropy_func(&entropyctx, salt, CHUNKSIZE);
 	if (ret) {
 		mbedtls_perror("Entropy gather failed", ret);
 		mbedtls_entropy_free(&entropyctx);
@@ -34,56 +24,83 @@ int main() {
 	}
 	mbedtls_entropy_free(&entropyctx);
 
-	mbedtls_md_context_t mdctx;
-	mbedtls_md_init(&mdctx);
+	return 0;
+}
 
-    const mbedtls_md_info_t * mdinfo = mbedtls_md_info_from_type(MBEDTLS_MD_SHA512);
-	if (mdinfo == NULL) {
-		fprintf(stderr, "SHA-512 lookup failed in mbed TLS\n");
-		return 1;
-	}
+int main(int argc, char ** argv) {
+	int ret;
 
-	ret = mbedtls_md_setup(&mdctx, mdinfo, 1);
+	uint8_t salt[CHUNKSIZE];
+	ret = generate_random_salt(salt);
 	if (ret) {
-		mbedtls_perror("HMAC context initialization failed", ret);
-		mbedtls_md_free(&mdctx);
+		return ret;
+	}
+
+	char password[MAXPASSLEN];
+
+	ret = initialize(argc, argv, password);
+	if (ret) {
+		return ret;
+	}
+
+	mbedtls_gcm_context aesgcm;
+	ret = prepare_aes(password, salt, &aesgcm, MBEDTLS_GCM_ENCRYPT);
+	if (ret) {
+		return ret;
+	}
+
+	if (fwrite(salt, CHUNKSIZE, 1, stdout) != 1) {
+		perror("Failed to write random seed");
+		mbedtls_gcm_free(&aesgcm);
 		return 1;
 	}
 
-	char pass[128];
-	while (1) {
-		char passverify[128];
-		if (!pass_prompt("Password: ", pass, sizeof(pass))) {
+	size_t readbytes;
+	do {
+		uint8_t plain[CHUNKSIZE];
+		uint8_t cipher[CHUNKSIZE];
+
+		readbytes = fread(plain, 1, CHUNKSIZE, stdin);
+		if (readbytes < CHUNKSIZE) {
+			if (!feof(stdin)) {
+				perror("Failed to read plaintext");
+				mbedtls_gcm_free(&aesgcm);
+				return 1;
+			}
+
+			if (readbytes == 0) {
+				break;
+			}
+		}
+
+		ret = mbedtls_gcm_update(&aesgcm, readbytes, plain, cipher);
+		if (ret) {
+			mbedtls_perror("Failed to execute AES encryption", ret);
+			mbedtls_gcm_free(&aesgcm);
 			return 1;
 		}
 
-		if (!pass_prompt("Verify: ", passverify, sizeof(passverify))) {
+		// Zeroize tail bytes
+		memset(cipher + readbytes, 0, CHUNKSIZE - readbytes);
+
+		if (fwrite(cipher, CHUNKSIZE, 1, stdout) == 0) {
+			perror("Failed to write ciphertext");
+			mbedtls_gcm_free(&aesgcm);
 			return 1;
 		}
+	} while (readbytes == CHUNKSIZE);
 
-		if (strcmp(pass, passverify) == 0) {
-			memset(passverify, 0, sizeof(passverify));
-			break;
-		}
-
-		fprintf(stderr, "Passwords do not match\n");
-	}
-
-	printf("Password = \"%s\"\n", pass);
-
-	uint8_t derivedpass[64];
-	ret = mbedtls_pkcs5_pbkdf2_hmac(&mdctx, (uint8_t *) pass, strlen(pass), randomsalt, sizeof(randomsalt), 10000, sizeof(derivedpass), derivedpass);
-	memset(pass, 0, sizeof(pass));
-	mbedtls_md_free(&mdctx);
-
+	uint8_t tag[CHUNKSIZE];
+	ret = mbedtls_gcm_finish(&aesgcm, tag, sizeof(tag));
+	mbedtls_gcm_free(&aesgcm);
 	if (ret) {
-		mbedtls_perror("HMAC context initialization failed", ret);
+		mbedtls_perror("Failed to finish GCM", ret);
 		return 1;
 	}
 
-	if (fwrite(randomsalt, sizeof(randomsalt), 1, stdout) != 1) {
-		perror("fwrite salt");
-		return 1;
+	tag[CHUNKSIZE - 1] = (tag[CHUNKSIZE - 1] & 0xF0) | readbytes;
+	if (fwrite(tag, sizeof(tag), 1, stdout) == 0) {
+		perror("Failed to write tail chunk");
 	}
 
 	return 0;
