@@ -4,13 +4,13 @@ EXEC = aesenc aesdec
 STATICLIBS = mbedtls
 
 # mbed TLS libraries
-MBEDTLSINCLUDE = $(PWD)/mbedtls/include
+MBEDTLSDIR = $(PWD)/mbedtls
 MBEDTLSCONFIG = $(PWD)/configs/mbedtls.h
 
 # Compilation flags
-INCLUDES = -I $(MBEDTLSINCLUDE)
-CFLAGS = -Wall -pedantic -O3 $(INCLUDES) $(COPT)
-LDFLAGS = -L mbedtls/library/ -l mbedcrypto
+INCLUDES = -I $(MBEDTLSDIR)/include
+CFLAGS ?= -Wall -pedantic -O2 $(COPT)
+LDFLAGS = -L $(MBEDTLSDIR)/library/ -l mbedcrypto
 
 HEADERS := $(wildcard *.h)
 OBJECTS := $(patsubst %.c,%.o,$(wildcard *.c))
@@ -32,11 +32,11 @@ all: $(STATICLIBS) $(EXEC)
 	$(CC) $(LIBSOBJ) $< -o $@ $(LDFLAGS)
 
 %.o: %.c $(HEADERS)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Static mbed TLS
 mbedtls: $(MBEDTLSCONFIG)
-	$(MAKE) lib -C mbedtls CFLAGS="-DMBEDTLS_CONFIG_FILE='\"$(MBEDTLSCONFIG)\"'"
+	$(MAKE) lib -C $(MBEDTLSDIR) CFLAGS="$(CFLAGS) -DMBEDTLS_CONFIG_FILE='\"$(MBEDTLSCONFIG)\"'"
 
 clean:
 	$(RM) $(OBJECTS) $(EXEC)
