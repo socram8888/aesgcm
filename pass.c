@@ -22,6 +22,7 @@ void trimnl(char * str) {
 #ifdef _WIN32
 
 #include <windows.h>
+#include <io.h>
 
 bool pass_prompt(const char * prompt, char * pass, size_t maxpasslen) {
 	DWORD originalmode;
@@ -39,7 +40,7 @@ bool pass_prompt(const char * prompt, char * pass, size_t maxpasslen) {
 		}
 
 		// Now get current active mode
-		termhandle = _get_osfhandle(_fileno(terminal));
+		termhandle = (HANDLE) _get_osfhandle(_fileno(terminal));
 		if (!GetConsoleMode(termhandle, &originalmode)) {
 			fclose(terminal);
 			return false;
