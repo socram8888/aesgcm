@@ -6,14 +6,13 @@
 #include "common.h"
 
 #include <stdio.h>
-#include <string.h>
 
 #include <mbedtls/entropy.h>
 
 int generate_random_salt(uint8_t * salt) {
 	int ret;
 
-    mbedtls_entropy_context entropyctx;
+	mbedtls_entropy_context entropyctx;
 	mbedtls_entropy_init(&entropyctx);
 
 	ret = mbedtls_entropy_func(&entropyctx, salt, CHUNKSIZE);
@@ -61,16 +60,10 @@ int main(int argc, char ** argv) {
 		uint8_t cipher[CHUNKSIZE];
 
 		readbytes = fread(plain, 1, CHUNKSIZE, stdin);
-		if (readbytes < CHUNKSIZE) {
-			if (!feof(stdin)) {
-				perror("Failed to read plaintext");
-				mbedtls_gcm_free(&aesgcm);
-				return 1;
-			}
-
-			if (readbytes == 0) {
-				break;
-			}
+		if (readbytes < CHUNKSIZE && !feof(stdin)) {
+			perror("Failed to read plaintext");
+			mbedtls_gcm_free(&aesgcm);
+			return 1;
 		}
 
 		ret = mbedtls_gcm_update(&aesgcm, readbytes, plain, cipher);
@@ -80,7 +73,7 @@ int main(int argc, char ** argv) {
 			return 1;
 		}
 
-		if (fwrite(cipher, readbytes, 1, stdout) == 0) {
+		if (fwrite(cipher, 1, readbytes, stdout) != readbytes) {
 			perror("Failed to write ciphertext");
 			mbedtls_gcm_free(&aesgcm);
 			return 1;
