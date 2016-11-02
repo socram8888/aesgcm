@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <mbedtls/error.h>
 #include <mbedtls/md.h>
@@ -65,7 +66,19 @@ int initialize(int argc, char ** argv, char * password) {
 	int ret;
 	password[0] = '\0';
 
-	/* TODO: read password from argv */
+	int c;
+	while ((c = getopt(argc, argv, "k:")) != -1) {
+		switch (c) {
+			case 'k':
+				strncpy(password, optarg, MAXPASSLEN - 1);
+				password[MAXPASSLEN - 1] = '\0';
+				break;
+
+			default:
+				fprintf(stderr, "Unknown option \"%c\"", c);
+				return 1;
+		}
+	}
 
 	if (password[0] == '\0') {
 		ret = ask_for_password(password);
