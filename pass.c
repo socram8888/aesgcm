@@ -93,8 +93,6 @@ bool pass_prompt(const char * prompt, char * pass, size_t maxpasslen) {
 #include <termios.h>
 
 bool pass_prompt(const char * prompt, char * pass, size_t maxpasslen) {
-	bool ok = false;
-
 	// Open terminal
 	FILE * terminal = fopen("/dev/tty", "r+");
 	if (!terminal) {
@@ -110,7 +108,7 @@ bool pass_prompt(const char * prompt, char * pass, size_t maxpasslen) {
 
 	// Now disable echo
 	struct termios noecho;
-	memcpy(&original, &noecho, sizeof(original));
+	memcpy(&noecho, &original, sizeof(original));
 	noecho.c_lflag &= ~ECHO;
 	if (tcsetattr(fileno(terminal), TCSAFLUSH, &noecho) == -1) {
 		fclose(terminal);
@@ -123,20 +121,23 @@ bool pass_prompt(const char * prompt, char * pass, size_t maxpasslen) {
 	// Read password
 	pass = fgets(pass, maxpasslen, terminal);
 
-	// Restore original terminal options and close it
+	// Restore original terminal options
 	if (tcsetattr(fileno(terminal), TCSAFLUSH, &original) == -1) {
 		fclose(terminal);
 		return false;
 	}
 
-	// We're done with the terminal, close it now
-	fclose(terminal);
-
 	// If fgets failed, abort now
 	if (pass == NULL) {
+		fclose(terminal);
 		return false;
 	}
 
+	// Feed new line and close terminal
+	fputc('\n', terminal);
+	fclose(terminal);
+
+	// Remove trailing newline from password
 	trimnl(pass);
 
 	return true;
