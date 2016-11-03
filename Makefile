@@ -1,6 +1,6 @@
 
 # Executable
-EXEC = aesenc aesdec
+BINS = aesenc aesdec
 STATICLIBS = mbedtls
 
 # mbed TLS libraries
@@ -14,7 +14,17 @@ LDFLAGS = -L $(MBEDTLSDIR)/library/ -l mbedcrypto
 
 HEADERS := $(wildcard *.h)
 OBJECTS := $(patsubst %.c,%.o,$(wildcard *.c))
-LIBSOBJ := $(filter-out $(EXEC:%=%.o),$(OBJECTS))
+LIBSOBJ := $(filter-out $(BINS:%=%.o),$(OBJECTS))
+
+# Commands
+INSTALL = /usr/bin/install -D
+INSTALL_PROGRAM = ${INSTALL}
+INSTALL_DATA = ${INSTALL} -m 644
+
+# Directories
+prefix = /usr/local
+exec_prefix = $(prefix)
+bindir = $(exec_prefix)/bin
 
 # Disable built-in wildcard rules
 .SUFFIXES:
@@ -26,7 +36,7 @@ LIBSOBJ := $(filter-out $(EXEC:%=%.o),$(OBJECTS))
 .PHONY: $(STATICLIBS)
 
 # Default target: compile all programs
-all: $(STATICLIBS) $(EXEC)
+all: $(STATICLIBS) $(BINS)
 
 %: %.o $(LIBSOBJ)
 	$(CC) $(LIBSOBJ) $< -o $@ $(LDFLAGS)
@@ -39,7 +49,19 @@ mbedtls: $(MBEDTLSCONFIG)
 	$(MAKE) lib -C $(MBEDTLSDIR) CFLAGS="$(CFLAGS) -DMBEDTLS_CONFIG_FILE='\"$(MBEDTLSCONFIG)\"'"
 
 clean:
-	$(RM) $(OBJECTS) $(EXEC)
+	$(RM) $(OBJECTS) $(BINS)
 
 distclean: clean
 	$(MAKE) -C mbedtls clean
+
+# Install
+install: $(BINS:%=install_%)
+
+install_%: %
+	$(INSTALL_PROGRAM) $< $(DESTDIR)$(bindir)/$<
+
+# Uninstall
+uninstall: $(BINS:%=uninstall_%)
+
+uninstall_%: %
+	$(RM) $(DESTDIR)$(bindir)/$<
