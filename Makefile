@@ -48,11 +48,12 @@ all: $(STATICLIBS) $(BINS)
 mbedtls: $(MBEDTLSCONFIG)
 	$(MAKE) lib -C $(MBEDTLSDIR) CFLAGS="$(CFLAGS) -DMBEDTLS_CONFIG_FILE='\"$(MBEDTLSCONFIG)\"'"
 
-clean:
-	$(RM) $(OBJECTS) $(BINS)
+# Clean targets
+clean: mostlyclean
+	$(MAKE) -C $(MBEDTLSDIR) clean
 
-distclean: clean
-	$(MAKE) -C mbedtls clean
+mostlyclean:
+	$(RM) $(OBJECTS) $(BINS)
 
 # Install
 install: $(BINS:%=install_%)
