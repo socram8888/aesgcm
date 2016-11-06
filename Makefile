@@ -1,20 +1,31 @@
 
 # Executable
-EXEC = aesenc aesdec
+BINS = aesenc aesdec
 STATICLIBS = mbedtls
 
-# mbed TLS libraries
-MBEDTLSDIR = $(PWD)/mbedtls
-MBEDTLSCONFIG = $(PWD)/configs/mbedtls.h
-
 # Compilation flags
-INCLUDES = -I $(MBEDTLSDIR)/include
-CFLAGS ?= -Wall -pedantic -O2 $(COPT)
-LDFLAGS = -L $(MBEDTLSDIR)/library/ -l mbedcrypto
+CFLAGS ?= -Wall -pedantic -O2
+ALL_CFLAGS = -I $(MBEDTLS_DIR)/include $(CFLAGS)
+LDFLAGS = -L $(MBEDTLS_DIR)/library -l mbedcrypto
+
+# Commands
+INSTALL = /usr/bin/install -D
+INSTALL_PROGRAM = ${INSTALL}
+INSTALL_DATA = ${INSTALL} -m 644
+
+# Directories
+prefix = /usr/local
+exec_prefix = $(prefix)
+bindir = $(exec_prefix)/bin
+
+# mbed TLS libraries
+MBEDTLS_DIR = $(PWD)/mbedtls
+MBEDTLS_CONFIG = $(PWD)/configs/mbedtls.h
+MBEDTLS_CFLAGS = -DMBEDTLS_CONFIG_FILE='\"$(MBEDTLS_CONFIG)\"' $(CFLAGS)
 
 HEADERS := $(wildcard *.h)
 OBJECTS := $(patsubst %.c,%.o,$(wildcard *.c))
-LIBSOBJ := $(filter-out $(EXEC:%=%.o),$(OBJECTS))
+LIBSOBJ := $(filter-out $(BINS:%=%.o),$(OBJECTS))
 
 # Disable built-in wildcard rules
 .SUFFIXES:
@@ -26,20 +37,33 @@ LIBSOBJ := $(filter-out $(EXEC:%=%.o),$(OBJECTS))
 .PHONY: $(STATICLIBS)
 
 # Default target: compile all programs
-all: $(STATICLIBS) $(EXEC)
+all: $(BINS)
 
-%: %.o $(LIBSOBJ)
-	$(CC) $(LIBSOBJ) $< -o $@ $(LDFLAGS)
+%: %.o $(LIBSOBJ) $(STATICLIBS)
+	$(CC) $(ALL_CFLAGS) $(LIBSOBJ) $< -o $@ $(LDFLAGS)
 
 %.o: %.c $(HEADERS)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	$(CC) $(ALL_CFLAGS) -c $< -o $@
 
 # Static mbed TLS
-mbedtls: $(MBEDTLSCONFIG)
-	$(MAKE) lib -C $(MBEDTLSDIR) CFLAGS="$(CFLAGS) -DMBEDTLS_CONFIG_FILE='\"$(MBEDTLSCONFIG)\"'"
+mbedtls: $(MBEDTLS_CONFIG)
+	$(MAKE) lib -C $(MBEDTLS_DIR) CFLAGS="$(MBEDTLS_CFLAGS)"
 
-clean:
-	$(RM) $(OBJECTS) $(EXEC)
+# Clean targets
+clean: mostlyclean
+	$(MAKE) -C $(MBEDTLS_DIR) clean
 
-distclean: clean
-	$(MAKE) -C mbedtls clean
+mostlyclean:
+	$(RM) $(OBJECTS) $(BINS)
+
+# Install
+install: $(BINS:%=install_%)
+
+install_%: %
+	$(INSTALL_PROGRAM) $< $(DESTDIR)$(bindir)/$<
+
+# Uninstall
+uninstall: $(BINS:%=uninstall_%)
+
+uninstall_%: %
+	$(RM) $(DESTDIR)$(bindir)/$<
