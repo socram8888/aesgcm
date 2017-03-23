@@ -4,8 +4,8 @@ BINS = aesenc aesdec
 STATICLIBS = mbedtls
 
 # Compilation flags
-CFLAGS ?= -Wall -pedantic -O2
-ALL_CFLAGS = -I $(MBEDTLS_DIR)/include $(CFLAGS)
+CFLAGS ?= -O2
+ALL_CFLAGS = -I $(MBEDTLS_DIR)/include $(CFLAGS) -std=gnu99 -Wall -pedantic
 LDFLAGS = -L $(MBEDTLS_DIR)/library -l mbedcrypto
 
 # Commands
