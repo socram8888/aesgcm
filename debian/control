@@ -13,16 +13,13 @@ Priority: extra
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Tool for encryting and decrypting using AES-GCM
- This package includes aesenc and aesdec, which are simple, lightweight,
- dependency-free and FAST cryptographic tools built around the AES-GCM
- construction.
+ This package includes the aesgcm tool, which is a simple, lightweight,
+ dependency-free cryptographic tool built around the AES-GCM construction.
+ .
+ The AES-GCM construction ensures lightning fast encryption in AES-NI-enabled
+ systems. The total overhead is small at only 32 extra bytes, consisting of
+ a random salt for derivation and the MAC for authentication.
  .
  As opposed to other tools, it is suitable for encrypting not only from files
  but also for streams with unknown length (such as a pipe from tar),
  ensuring that sensitive data is not stored in plaintext at any moment.
- .
- - aesenc allows for encryption and signing of files, generating a random IV
-   for password derivation and writing a MAC at the end.
- - aesdec allows decryption of files from aesenc, returning an error code
-   if the MAC does not match the expected value, signaling an invalid password
-   or data corruption.
