@@ -2,3 +2,4 @@ aesgcm/
 debhelper-build-stamp
 files
 *.substvars
+*.log
