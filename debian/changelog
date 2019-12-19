@@ -1,5 +1,5 @@
-aesgcm (0.0.1-1) UNRELEASED; urgency=low
+aesgcm (1.0.0) UNRELEASED; urgency=low
 
-  * Initial build
+  * First version
 
  -- Marcos Del Sol Vives <marcos@orca.pet>  Thu, 19 Dec 2019 15:21:00 +0100
