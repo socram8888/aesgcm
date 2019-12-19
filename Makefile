@@ -1,12 +1,12 @@
 
 # Executable
 BINS = aesenc aesdec
-STATICLIBS = mbedtls
+STATICLIBS = mbedcrypto
 
 # Compilation flags
 CFLAGS ?= -O2
-ALL_CFLAGS = -I $(MBEDTLS_DIR)/include $(CFLAGS) -std=gnu99 -Wall -pedantic
-LDFLAGS = -L $(MBEDTLS_DIR)/library -l mbedcrypto
+ALL_CFLAGS = -I $(MBEDCRYPTO_DIR)/include $(CFLAGS) -std=gnu99 -Wall -pedantic
+LDFLAGS = -L $(MBEDCRYPTO_DIR)/library -l mbedcrypto
 
 # Commands
 INSTALL = /usr/bin/install -D
@@ -19,9 +19,9 @@ exec_prefix = $(prefix)
 bindir = $(exec_prefix)/bin
 
 # mbed TLS libraries
-MBEDTLS_DIR = $(PWD)/mbedtls
-MBEDTLS_CONFIG = $(PWD)/configs/mbedtls.h
-MBEDTLS_CFLAGS = -DMBEDTLS_CONFIG_FILE='\"$(MBEDTLS_CONFIG)\"' $(CFLAGS)
+MBEDCRYPTO_DIR = $(PWD)/mbed-crypto
+MBEDCRYPTO_CONFIG = $(PWD)/configs/mbed-crypto.h
+MBEDCRYPTO_CFLAGS = -DMBEDCRYPTO_CONFIG_FILE='\"$(MBEDCRYPTO_CONFIG)\"' $(CFLAGS)
 
 HEADERS := $(wildcard *.h)
 OBJECTS := $(patsubst %.c,%.o,$(wildcard *.c))
@@ -46,12 +46,12 @@ all: $(BINS)
 	$(CC) $(ALL_CFLAGS) -c $< -o $@
 
 # Static mbed TLS
-mbedtls: $(MBEDTLS_CONFIG)
-	$(MAKE) lib -C $(MBEDTLS_DIR) CFLAGS="$(MBEDTLS_CFLAGS)"
+mbedcrypto: $(MBEDCRYPTO_CONFIG)
+	$(MAKE) lib -C $(MBEDCRYPTO_DIR) CFLAGS="$(MBEDCRYPTO_CFLAGS)"
 
 # Clean targets
 clean: mostlyclean
-	$(MAKE) -C $(MBEDTLS_DIR) clean
+	$(MAKE) -C $(MBEDCRYPTO_DIR) clean
 
 mostlyclean:
 	$(RM) $(OBJECTS) $(BINS)
