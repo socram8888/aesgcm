@@ -20,8 +20,8 @@ bindir = $(exec_prefix)/bin
 
 # mbed TLS libraries
 MBEDCRYPTO_DIR = $(PWD)/mbed-crypto
-MBEDCRYPTO_CONFIG = $(PWD)/configs/mbed-crypto.h
-MBEDCRYPTO_CFLAGS = -DMBEDCRYPTO_CONFIG_FILE='\"$(MBEDCRYPTO_CONFIG)\"' $(CFLAGS)
+MBEDCRYPTO_CONFIG = $(PWD)/configs/mbedtls.h
+MBEDCRYPTO_CFLAGS = -DMBEDTLS_CONFIG_FILE='\"$(MBEDCRYPTO_CONFIG)\"' $(CFLAGS)
 
 HEADERS := $(wildcard *.h)
 OBJECTS := $(patsubst %.c,%.o,$(wildcard *.c))
