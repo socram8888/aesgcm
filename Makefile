@@ -1,6 +1,6 @@
 
 # Executable
-BINS = aesenc aesdec
+BINS = aesgcm
 STATICLIBS = mbedcrypto
 
 # Compilation flags
