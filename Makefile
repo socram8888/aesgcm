@@ -14,7 +14,7 @@ INSTALL_PROGRAM = ${INSTALL}
 INSTALL_DATA = ${INSTALL} -m 644
 
 # Directories
-prefix = /usr/local
+prefix = $(DESTDIR)/usr/local
 exec_prefix = $(prefix)
 bindir = $(exec_prefix)/bin
 
