@@ -1,0 +1,28 @@
+Source: aesgcm
+Section: utils
+Priority: extra
+Maintainer: Marcos Del Sol Vives <marcos@orca.pet>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.3
+Vcs-Git: git@github.com:socram8888/aesgcm.git
+Vcs-Browser: https://github.com/socram8888/aesgcm
+
+Package: aesgcm
+Section: utils
+Priority: extra
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Tool for encryting and decrypting using AES-GCM
+ This package includes aesenc and aesdec, which are simple, lightweight,
+ dependency-free and FAST cryptographic tools built around the AES-GCM
+ construction.
+ .
+ As opposed to other tools, it is suitable for encrypting not only from files
+ but also for streams with unknown length (such as a pipe from tar),
+ ensuring that sensitive data is not stored in plaintext at any moment.
+ .
+ - aesenc allows for encryption and signing of files, generating a random IV
+   for password derivation and writing a MAC at the end.
+ - aesdec allows decryption of files from aesenc, returning an error code
+   if the MAC does not match the expected value, signaling an invalid password
+   or data corruption.
