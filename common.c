@@ -91,7 +91,7 @@ int initialize(int argc, char ** argv, char * password) {
 }
 
 int derive_keys(const char * pass, const uint8_t * salt, struct aes256_key_pair * keys) {
-    const mbedtls_md_info_t * mdinfo = mbedtls_md_info_from_type(MBEDTLS_MD_SHA512);
+	const mbedtls_md_info_t * mdinfo = mbedtls_md_info_from_type(MBEDTLS_MD_SHA512);
 	if (mdinfo == NULL) {
 		fprintf(stderr, "SHA-512 lookup failed in mbed TLS\n");
 		return 1;
