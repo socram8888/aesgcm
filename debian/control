@@ -2,8 +2,8 @@ Source: aesgcm
 Section: utils
 Priority: extra
 Maintainer: Marcos Del Sol Vives <marcos@orca.pet>
-Build-Depends: debhelper (>= 8.0.0)
-Standards-Version: 3.9.3
+Build-Depends: debhelper (>=10)
+Standards-Version: 4.0.0
 Vcs-Git: git@github.com:socram8888/aesgcm.git
 Vcs-Browser: https://github.com/socram8888/aesgcm
 
