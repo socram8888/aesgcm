@@ -1,0 +1,29 @@
+.TH AESGCM 1 "19 December 2019"
+.SH NAME
+aesgcm \- AES-GCM encryption/decryption tool
+.SH SYNOPSIS
+\fBaesgcm\fP [ -e | -d | -? ] [ -k \fIpassword\fP ]
+.SH DESCRIPTION
+\fBaesgcm\fP is a simple, lightweight, dependency-free cryptographic tool
+built around the AES-GCM construction.
+
+It reads from standard input, encrypts or decrypts, and writes the result to
+the standard output. This makes the tool particularly suitable for securing
+offline backups with tar.
+
+The total space overhead is at 32 bytes, which consist of 16 bytes of salt
+for password derivation, and 16 bytes for the MAC.
+.SS Options
+.TP
+\fB-e\fP
+Encryption mode (default).
+.TP
+\fB-d\fP
+Decryption mode.
+.TP
+\fB-?\fP
+Shows a quick help and quits.
+.TP
+\fB-k\fP \fIpassword\fP
+Uses the specified password. If this switch is not passed, aesgcm will
+ask for a password on the terminal.
