@@ -295,12 +295,11 @@ int do_decrypt(char * password) {
 
 void show_help(const char * self) {
 	fprintf(stderr,
-			"Usage: %s -edh? -k (password)\n"
+			"Usage: %s -ed? -k (password)\n"
 			"\n"
 			"    -e: encryption (default)\n"
 			"    -d: decryption\n"
 			"    -?: show this help and quit\n"
-			"    -h: show this help and quit\n"
 			"    -k pass: use specified password. If this option is not specified,\n"
 			"             an interactive terminal for password input will be used.\n"
 			"\n"
@@ -320,7 +319,7 @@ int main(int argc, char ** argv) {
 
 	int c;
 	bool decrypt = false;
-	while ((c = getopt(argc, argv, "h?edk:")) != -1) {
+	while ((c = getopt(argc, argv, "?edk:")) != -1) {
 		switch (c) {
 			case 'e':
 				decrypt = false;
@@ -336,7 +335,6 @@ int main(int argc, char ** argv) {
 				break;
 
 			case '?':
-			case 'h':
 				show_help(argv[0]);
 				return 0;
 
