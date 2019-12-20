@@ -5,7 +5,7 @@ aesgcm \- AES-GCM encryption/decryption tool
 \fBaesgcm\fP [ -e | -d | -? ] [ -k \fIpassword\fP ]
 .SH DESCRIPTION
 \fBaesgcm\fP is a simple, lightweight, dependency-free cryptographic tool
-built around the AES-GCM construction.
+built around the AEAD AES-256-GCM construction.
 
 It reads from standard input, encrypts or decrypts, and writes the result to
 the standard output. This makes the tool particularly suitable for securing
@@ -27,3 +27,63 @@ Shows a quick help and quits.
 \fB-k\fP \fIpassword\fP
 Uses the specified password. If this switch is not passed, aesgcm will
 ask for a password on the terminal.
+.SH RETURN VALUE
+.IP \-
+0 is returned on success.
+.IP \-
+1 is returned for invalid usage or input, or internal error.
+.IP \-
+2 is returned for MAC validation error \fBafter\fP decryption.
+.SH LIMITATIONS
+Due to the tool being designed around pipes, the data will be decrypted from
+the input and written to the output \fBbefore the MAC is checked\fP, which
+happens at the end of the input.
+.br
+If you need to be sure the data isn't corrupt or hasn't been tampered with
+before the data is written in plain to the output, consider running twice the
+tool - one piping to /dev/null for only checking the MAC, and then again for
+the actual decryption.
+.br
+Please note this approach is vulnerable to a TOCTOU (time-of-check to
+time-of-use) attack in which an attacker with live write access to the input
+could still alter its contents between the check and the actual decryption.
+
+The maximum length for the password is 128 characters. Any character past this
+limit will be silently ignored.
+
+The counter part of the IV is 16 bytes long, which means that this tool is
+good for up to 16*2^128 bytes, or 5070602400912917605986812821504 GiBs of
+data.
+.SH ENCRYPTION
+First, a 16-byte random salt is generated using a cryptographically-safe
+source, and it is written as-is to the output.
+
+Then, using said salt, the user's password is derived using PBKDF2 with SHA256
+and 10000 iterations into 48 bytes - 32 bytes for the AES-256 key and 16 bytes
+for the IV.
+
+Data from the input is then read, passed through the AEAD cipher, and written
+to the output.
+
+When the end of the input stream is reached, the 128-bit MAC is finalized
+and written to the output.
+.SH SECURITY
+AES-256 was chosen instead of AES-128 for future-proofing, as if general-
+purpose quantum computers are ever readily available, AES-128 could be defeated
+by a bruteforce attack using Grover's algorithm in 2^64 operations, a fully
+feasible attack. AES-256, on the other hand, would still need 2^128 operations.
+
+SHA-256 and PBKDF2 were considered due to their common availability and a lack
+of any serious vulnerability.
+.SH BUG REPORTS
+Report bugs to <marcos@orca.pet>.
+.SH COPYRIGHT
+Copyright \[co] 2019 Marcos Del Sol Vives <marcos@orca.pet>.
+.br
+License simplified BSD: <https://opensource.org/licenses/BSD-2-Clause>
+
+This tool contains a statically-linked version of mbed-crypto:
+.br
+Copyright \[co] 2019 Arm Limited
+.br
+License Apache version 2.0: <https://www.apache.org/licenses/LICENSE-2.0>
