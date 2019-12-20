@@ -2,6 +2,7 @@
 # Executable
 BINS = aesgcm
 STATICLIBS = mbedcrypto
+MAN1 = aesgcm.1
 
 # Compilation flags
 CFLAGS ?= -O2
@@ -17,6 +18,7 @@ INSTALL_DATA = ${INSTALL} -m 644
 prefix = /usr/local
 exec_prefix = $(prefix)
 bindir = $(exec_prefix)/bin
+manpath = $(prefix)/share/man
 
 # mbed TLS libraries
 MBEDCRYPTO_DIR = $(PWD)/mbed-crypto
@@ -57,10 +59,14 @@ mostlyclean:
 	$(RM) $(OBJECTS) $(BINS)
 
 # Install
-install: $(BINS:%=install_%)
+install: $(BINS:%=install_%) $(MAN1:%=installman1_%)
 
 install_%: %
 	$(INSTALL_PROGRAM) $< $(DESTDIR)$(bindir)/$<
+
+installman1_%: %
+	mkdir -p $(DESTDIR)$(manpath)/man1/
+	gzip -c $< > $(DESTDIR)$(manpath)/man1/$<.gz
 
 # Uninstall
 uninstall: $(BINS:%=uninstall_%)
